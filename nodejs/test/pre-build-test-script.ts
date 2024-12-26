@@ -3,6 +3,8 @@ import { FlagForLitTxn } from "../dist/types.js";
 import * as ethers from "ethers";
 import "dotenv/config";
 
+import fs from "fs";
+
 const litWrapper = new LitWrapper("datil-dev");
 
 const ETHEREUM_PRIVATE_KEY = process.env.ETHEREUM_PRIVATE_KEY as string;
@@ -267,6 +269,37 @@ async function executeSolanaAgentKit() {
     console.log(agentKitResponse);
 }
 
+async function uploadToIPFS() {
+    const file = await fs.promises.readFile(
+        "./src/actions/solana-agent-kit.js",
+        "utf8"
+    );
+    console.log(file);
+    const response = await litWrapper.uploadViaPinata({
+        pinataAPIKey: process.env.PINATA_API_KEY!,
+        litActionCode: file,
+    });
+    console.log(response);
+}
+
+async function removePermittedAction() {
+    const response = await litWrapper.createSolanaWK(ETHEREUM_PRIVATE_KEY);
+    await litWrapper.removePermittedAction({
+        userPrivateKey: ETHEREUM_PRIVATE_KEY,
+        pkpTokenId: response?.pkpInfo?.tokenId!,
+        ipfsCID: "QmQ567ZLdXDWcxXFQ4KaV",
+    });
+}
+
+async function removeAuthAddress() {
+    const response = await litWrapper.createSolanaWK(ETHEREUM_PRIVATE_KEY);
+    await litWrapper.removeAuthAddress(
+        ETHEREUM_PRIVATE_KEY,
+        response?.pkpInfo?.tokenId!,
+        "0xE1B12f284654c080145Fed0f991D1C3B8d493A06"
+    );
+}
+
 // actionTester();
 // generateSolanaWallet();
 // sendSolTxn();
@@ -278,4 +311,7 @@ async function executeSolanaAgentKit() {
 // checkAuthMethods()
 // addLitActionAsAuthMethod()
 // addAuthAddress()
-executeSolanaAgentKit()
+// executeSolanaAgentKit()
+// uploadToIPFS();
+// removePermittedAction();
+// removeAuthAddress();
